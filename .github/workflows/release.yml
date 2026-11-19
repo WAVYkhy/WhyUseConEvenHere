@@ -22,6 +22,8 @@ jobs:
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -33,6 +35,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build core package
+        run: pnpm build:core
 
       - name: Build and create GitHub Release
         uses: tauri-apps/tauri-action@v0
