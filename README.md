@@ -57,4 +57,4 @@ pnpm tauri:build
 
 ## 라이선스
 
-소스 코드는 [MIT License](LICENSE)를 따릅니다.
+소스 코드는 [PolyForm Noncommercial License 1.0.0](LICENSE)를 따릅니다. (비상업적 용도로만 사용 가능)

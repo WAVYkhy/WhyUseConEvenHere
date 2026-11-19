@@ -3,7 +3,7 @@ name = "discordcon-desktop"
 version = "0.1.0"
 description = "Standalone Discord tray/overlay app for ArcaCon and DCCon"
 authors = ["DiscordCon"]
-license = "MIT"
+license = "PolyForm-Noncommercial-1.0.0"
 edition = "2021"
 
 [lib]
