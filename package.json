@@ -1,0 +1,14 @@
+{
+  "name": "discordcon-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": "https://github.com/WAVYkhy/WhyUseConEvenHere",
+  "scripts": {
+    "build": "pnpm -r build",
+    "build:core": "pnpm --filter @discordcon/core build",
+    "build:desktop": "pnpm --filter @discordcon/desktop build",
+    "dev:desktop": "pnpm --filter @discordcon/desktop tauri dev",
+    "tauri:build": "pnpm --filter @discordcon/desktop tauri build"
+  }
+}

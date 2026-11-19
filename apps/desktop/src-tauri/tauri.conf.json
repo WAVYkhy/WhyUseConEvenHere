@@ -1,0 +1,48 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "여기서까지콘을써야겠냐",
+  "version": "0.1.0",
+  "identifier": "com.discordcon.app",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "여기서까지콘을써야겠냐",
+        "width": 480,
+        "height": 500,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "skipTaskbar": true,
+        "alwaysOnTop": true,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' blob: data:; worker-src 'self' blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "createUpdaterArtifacts": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDczODc4NDZBRkFDREJDNDYKUldSR3ZNMzZhb1NIYzdzY0VJaFU1T1owcWNrek5aZm11TVhyZ2g1UXNFck9PT2JmdC9ubytNemYK",
+      "endpoints": [
+        "https://github.com/WAVYkhy/WhyUseConEvenHere/releases/latest/download/latest.json"
+      ]
+    }
+  }
+}
