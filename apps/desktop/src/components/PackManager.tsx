@@ -1,5 +1,6 @@
 import type { EmoticonPack } from "@discordcon/core";
 import React, { useState } from "react";
+import { openExternalUrl } from "../adapters/tauriBridge";
 
 interface PackBarProps {
     activePack: EmoticonPack | null;
@@ -39,7 +40,7 @@ export function PackBar({
                         ? "최근 사용한 콘"
                         : activeTab === "favorites"
                           ? "즐겨찾기"
-                          : "새 이모티콘 팩 등록"}
+                          : "새 콘 팩 등록"}
                 </span>
             </div>
         );
@@ -134,10 +135,26 @@ export function AddPackPanel({
         <form className="dc-ke-add-panel" onSubmit={onSubmit}>
             <h3>아카콘 / 디시콘 등록</h3>
             <p className="dc-ke-add-desc">
-                아카라이브 이모티콘 URL(예: <code>https://arca.live/e/53122</code>) 또는
+                아카라이브 콘 URL(예: <code>https://arca.live/e/53122</code>) 또는
                 디시콘 URL(예: <code>https://dccon.dcinside.com/#12345</code>), 단축 입력(
                 <code>arca:53122</code>, <code>dc:12345</code>)을 입력하세요.
             </p>
+            <div className="dc-ke-add-links">
+                <button
+                    type="button"
+                    className="dc-ke-link-btn"
+                    onClick={() => void openExternalUrl("https://arca.live/e/?p=")}
+                >
+                    아카콘 검색 ↗
+                </button>
+                <button
+                    type="button"
+                    className="dc-ke-link-btn"
+                    onClick={() => void openExternalUrl("https://dccon.dcinside.com/")}
+                >
+                    디시콘 검색 ↗
+                </button>
+            </div>
             <input
                 className="dc-ke-input"
                 type="text"

@@ -260,7 +260,7 @@ async fn send_ctrl_v() -> Result<(), String> {
                     match target_elevated {
                         Ok(true) | Err(()) => {
                             return Err(
-                                "클립보드에 복사되었지만 대상 앱이 관리자 권한으로 실행 중이어서 자동 붙여넣기가 차단되었습니다. Ctrl+V로 직접 붙여넣거나 DiscordConApp을 관리자 권한으로 실행해 주세요."
+                                "클립보드에 복사되었지만 대상 앱이 관리자 권한으로 실행 중이어서 자동 붙여넣기가 차단되었습니다. Ctrl+V로 직접 붙여넣거나 여기서까지콘을써야겠냐를 관리자 권한으로 실행해 주세요."
                                     .to_string(),
                             );
                         }

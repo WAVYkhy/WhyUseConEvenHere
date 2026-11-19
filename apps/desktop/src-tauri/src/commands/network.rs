@@ -204,6 +204,45 @@ pub async fn fetch_media(url: String, source: String) -> Result<Response, String
     Ok(Response::new(encode_media_frame(status, final_mime, &payload)))
 }
 
+#[tauri::command]
+pub fn open_external_url(url: String) -> Result<(), String> {
+    let parsed = Url::parse(url.trim()).map_err(|e| format!("Invalid URL: {}", e))?;
+    if parsed.scheme() != "https" && parsed.scheme() != "http" {
+        return Err("Only http/https URLs are supported".to_string());
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::ffi::OsStr;
+        use std::os::windows::ffi::OsStrExt;
+        use windows::core::PCWSTR;
+        use windows::Win32::UI::Shell::ShellExecuteW;
+        use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+        let wide_op: Vec<u16> = OsStr::new("open").encode_wide().chain(Some(0)).collect();
+        let wide_url: Vec<u16> = OsStr::new(parsed.as_str()).encode_wide().chain(Some(0)).collect();
+        let hinst = unsafe {
+            ShellExecuteW(
+                None,
+                PCWSTR(wide_op.as_ptr()),
+                PCWSTR(wide_url.as_ptr()),
+                PCWSTR::null(),
+                PCWSTR::null(),
+                SW_SHOWNORMAL,
+            )
+        };
+        if (hinst.0 as isize) <= 32 {
+            return Err(format!("Failed to open URL (code {})", hinst.0 as isize));
+        }
+        return Ok(());
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        Err("Opening external URLs is only supported on Windows".to_string())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

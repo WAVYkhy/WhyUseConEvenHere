@@ -362,7 +362,7 @@ export function EmoticonPicker() {
         try {
             const newPack = await fetchPackMetadata(tauriBridge, parsed.source, parsed.packId);
             if (newPack.items.length === 0) {
-                throw new Error("등록할 이모티콘이 없습니다.");
+                throw new Error("등록할 콘이 없습니다.");
             }
             const next = [...packs, newPack];
             setPacks(next);
@@ -581,7 +581,7 @@ export function EmoticonPicker() {
                                 ref={searchInputRef}
                                 className="dc-ke-input"
                                 type="text"
-                                placeholder="이모티콘 검색..."
+                                placeholder="콘 검색..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                             />
@@ -620,10 +620,10 @@ export function EmoticonPicker() {
                             <div className="dc-ke-empty">
                                 <span>
                                     {activeTab === "recent"
-                                        ? "최근 사용한 이모티콘이 없습니다."
+                                        ? "최근 사용한 콘이 없습니다."
                                         : activeTab === "favorites"
-                                          ? "즐겨찾기한 이모티콘이 없습니다."
-                                          : "일치하는 이모티콘이 없습니다."}
+                                          ? "즐겨찾기한 콘이 없습니다."
+                                          : "일치하는 콘이 없습니다."}
                                 </span>
                                 {packs.length === 0 && (
                                     <button

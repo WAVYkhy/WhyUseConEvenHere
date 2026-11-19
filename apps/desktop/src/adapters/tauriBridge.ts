@@ -73,3 +73,7 @@ export async function setBlurSuppressed(suppressed: boolean): Promise<void> {
 export async function registerOverlayShortcut(shortcut: string): Promise<void> {
     await invoke("register_overlay_shortcut", { shortcut });
 }
+
+export async function openExternalUrl(url: string): Promise<void> {
+    await invoke("open_external_url", { url });
+}

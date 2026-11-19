@@ -7,7 +7,7 @@ use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 use commands::clipboard::{cleanup_staging_dir, copy_media_to_clipboard};
-use commands::network::{fetch_arca_pack, fetch_dc_pack, fetch_media};
+use commands::network::{fetch_arca_pack, fetch_dc_pack, fetch_media, open_external_url};
 use window::{hide_overlay_window, set_blur_suppressed, show_overlay_at_cursor, toggle_overlay, WindowGuardState};
 
 #[tauri::command]
@@ -90,6 +90,7 @@ pub fn run() {
             hide_overlay_window,
             set_blur_suppressed,
             register_overlay_shortcut,
+            open_external_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

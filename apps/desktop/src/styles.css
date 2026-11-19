@@ -504,6 +504,29 @@ body,
     color: var(--text-strong);
 }
 
+.dc-ke-add-links {
+    display: flex;
+    gap: 8px;
+}
+
+.dc-ke-link-btn {
+    flex: 1;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s;
+}
+
+.dc-ke-link-btn:hover {
+    background: var(--btn-secondary-hover);
+}
+
 .dc-ke-btn {
     height: 32px;
     padding: 0 14px;
