@@ -204,9 +204,43 @@ fn set_clipboard_hdrop(_file_path: &Path) -> Result<(), String> {
 }
 
 #[cfg(windows)]
+fn is_process_handle_elevated(process: windows::Win32::Foundation::HANDLE) -> Result<bool, ()> {
+    use windows::Win32::Foundation::{CloseHandle, HANDLE};
+    use windows::Win32::Security::{
+        GetTokenInformation, TokenElevation, TOKEN_ELEVATION, TOKEN_QUERY,
+    };
+    use windows::Win32::System::Threading::OpenProcessToken;
+
+    let mut token = HANDLE::default();
+    if unsafe { OpenProcessToken(process, TOKEN_QUERY, &mut token) }.is_err() {
+        return Err(());
+    }
+
+    let mut elevation = TOKEN_ELEVATION::default();
+    let mut return_len: u32 = 0;
+    let ok = unsafe {
+        GetTokenInformation(
+            token,
+            TokenElevation,
+            Some(&mut elevation as *mut _ as *mut core::ffi::c_void),
+            std::mem::size_of::<TOKEN_ELEVATION>() as u32,
+            &mut return_len,
+        )
+    };
+    let _ = unsafe { CloseHandle(token) };
+
+    if ok.is_err() {
+        return Err(());
+    }
+    Ok(elevation.TokenIsElevated != 0)
+}
+
+#[cfg(windows)]
 async fn send_ctrl_v() -> Result<(), String> {
     use windows::Win32::Foundation::CloseHandle;
-    use windows::Win32::System::Threading::{OpenProcess, PROCESS_QUERY_INFORMATION};
+    use windows::Win32::System::Threading::{
+        GetCurrentProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+    };
     use windows::Win32::UI::Input::KeyboardAndMouse::{
         MapVirtualKeyW, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
         KEYEVENTF_KEYUP, MAPVK_VK_TO_VSC, VIRTUAL_KEY, VK_CONTROL, VK_V,
@@ -214,19 +248,24 @@ async fn send_ctrl_v() -> Result<(), String> {
     use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, GetWindowThreadProcessId};
 
     {
-        let fg = unsafe { GetForegroundWindow() };
-        let mut pid: u32 = 0;
-        unsafe { GetWindowThreadProcessId(fg, Some(&mut pid)) };
-        if pid != 0 {
-            match unsafe { OpenProcess(PROCESS_QUERY_INFORMATION, false, pid) } {
-                Ok(handle) => {
+        let self_elevated = is_process_handle_elevated(unsafe { GetCurrentProcess() }).unwrap_or(false);
+        if !self_elevated {
+            let fg = unsafe { GetForegroundWindow() };
+            let mut pid: u32 = 0;
+            unsafe { GetWindowThreadProcessId(fg, Some(&mut pid)) };
+            if pid != 0 {
+                if let Ok(handle) = unsafe { OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) } {
+                    let target_elevated = is_process_handle_elevated(handle);
                     let _ = unsafe { CloseHandle(handle) };
-                }
-                Err(_) => {
-                    return Err(
-                        "대상 앱이 관리자 권한으로 실행 중이어서 자동 붙여넣기가 차단되었습니다. DiscordConApp을 관리자 권한으로 실행해 주세요."
-                            .to_string(),
-                    );
+                    match target_elevated {
+                        Ok(true) | Err(()) => {
+                            return Err(
+                                "클립보드에 복사되었지만 대상 앱이 관리자 권한으로 실행 중이어서 자동 붙여넣기가 차단되었습니다. Ctrl+V로 직접 붙여넣거나 DiscordConApp을 관리자 권한으로 실행해 주세요."
+                                    .to_string(),
+                            );
+                        }
+                        Ok(false) => {}
+                    }
                 }
             }
         }

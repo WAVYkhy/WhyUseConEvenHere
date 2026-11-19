@@ -35,6 +35,12 @@ interface ToastState {
     variant: "success" | "error" | "info";
 }
 
+function getErrorMessage(err: unknown, fallback: string): string {
+    if (err instanceof Error && err.message) return err.message;
+    if (typeof err === "string" && err.trim().length > 0) return err;
+    return fallback;
+}
+
 function PackTabThumb({
     pack,
     onPackUpdated,
@@ -365,7 +371,7 @@ export function EmoticonPicker() {
             setActiveTab(newPack.id);
             notify(`"${newPack.title}" 팩이 등록되었습니다.`, "success");
         } catch (err) {
-            setAddError(err instanceof Error ? err.message : "팩을 불러오지 못했습니다.");
+            setAddError(getErrorMessage(err, "팩을 불러오지 못했습니다."));
         } finally {
             setAddingPack(false);
         }
@@ -400,7 +406,7 @@ export function EmoticonPicker() {
 
             notify("붙여넣기 완료!", "success");
         } catch (err) {
-            notify(err instanceof Error ? err.message : "붙여넣기 실패", "error");
+            notify(getErrorMessage(err, "붙여넣기 실패"), "error");
         } finally {
             setBusyKey(null);
         }
@@ -441,7 +447,7 @@ export function EmoticonPicker() {
             const updated = await refreshPack(tauriBridge, activePack, handlePackUpdated);
             notify(`"${updated.title}" 팩을 새로고침했습니다.`, "success");
         } catch (err) {
-            notify(err instanceof Error ? err.message : "새로고침 실패", "error");
+            notify(getErrorMessage(err, "새로고침 실패"), "error");
         }
     };
 

@@ -89,7 +89,13 @@ export function SettingsModal({
             onNotify("설정이 저장되었습니다.", "success");
             onClose();
         } catch (err) {
-            onNotify(err instanceof Error ? err.message : "설정 저장 실패", "error");
+            const message =
+                err instanceof Error && err.message
+                    ? err.message
+                    : typeof err === "string" && err.trim().length > 0
+                      ? err
+                      : "설정 저장 실패";
+            onNotify(message, "error");
         } finally {
             setSaving(false);
         }
