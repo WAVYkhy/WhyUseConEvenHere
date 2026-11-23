@@ -12,7 +12,7 @@ const TASK_NAME: &str = "DiscordConApp";
 
 /// Legacy registry `Run` value written by the old `tauri-plugin-autostart` setup.
 const LEGACY_RUN_VALUE: &str = "discordcon-desktop";
-const RUN_KEY: &str = r"HKCU\Software\Microsoft\Windows\CurrentVersion\Run";
+const RUN_KEY_PATH: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
 
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
@@ -92,11 +92,21 @@ pub fn set_autostart(enabled: bool) -> Result<(), String> {
 /// Removes the pre-elevation `Run` entry and adopts its setting into the scheduled task,
 /// so users who already had autostart on keep it (without a UAC prompt at logon).
 pub fn migrate_legacy_run_key() {
-    let mut had_legacy = delete_legacy_run_value(LEGACY_RUN_VALUE);
+    let Some(exe_path) = std::env::current_exe()
+        .ok()
+        .map(|p| normalize_path(&p.display().to_string()))
+    else {
+        return;
+    };
 
     // The old plugin used `package_info().name`; also catch a stale product-name entry.
-    for extra in ["여기서까지콘을써야겠냐", "DiscordConApp"] {
-        if extra != LEGACY_RUN_VALUE && delete_legacy_run_value(extra) {
+    let mut had_legacy = false;
+    for (name, value) in query_run_values() {
+        if !normalize_path(&value).contains(&exe_path) {
+            // Belongs to another executable (e.g. a debug build): leave it alone.
+            continue;
+        }
+        if delete_run_value(&name) {
             had_legacy = true;
         }
     }
@@ -106,26 +116,58 @@ pub fn migrate_legacy_run_key() {
     }
 }
 
-fn delete_legacy_run_value(value_name: &str) -> bool {
-    // Only drop the entry when it actually launches this executable.
-    let Ok(output) = run("reg", &["query", RUN_KEY, "/v", value_name]) else {
-        return false;
+/// Lowercases and unifies separators/quotes so a registry value and `current_exe()` compare equal.
+fn normalize_path(path: &str) -> String {
+    path.trim()
+        .trim_matches('"')
+        .replace('/', "\\")
+        .to_lowercase()
+}
+
+/// Reads every known legacy `Run` value in one go.
+///
+/// `reg query` writes its output in the console code page, which mangles non-ASCII install
+/// paths, so the values are read through PowerShell with UTF-8 output instead.
+fn query_run_values() -> Vec<(String, String)> {
+    let names = format!(
+        "'{}','{}','{}'",
+        LEGACY_RUN_VALUE, "여기서까지콘을써야겠냐", "DiscordConApp"
+    );
+    let script = format!(
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8; \
+         $run = Get-ItemProperty 'HKCU:\\{RUN_KEY_PATH}' -ErrorAction SilentlyContinue; \
+         foreach ($n in @({names})) {{ $v = $run.$n; if ($v) {{ \"$n`t$v\" }} }}"
+    );
+
+    let Ok(output) = run(
+        "powershell",
+        &["-NoProfile", "-NonInteractive", "-Command", &script],
+    ) else {
+        return Vec::new();
     };
     if !output.status.success() {
-        return false;
+        return Vec::new();
     }
 
-    let text = String::from_utf8_lossy(&output.stdout);
-    let exe_name = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()))
-        .unwrap_or_else(|| "discordcon-desktop.exe".to_string());
-    if !text.to_lowercase().contains(&exe_name.to_lowercase()) {
-        return false;
-    }
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .filter_map(|line| {
+            let (name, value) = line.split_once('\t')?;
+            Some((name.trim().to_string(), value.trim().to_string()))
+        })
+        .collect()
+}
 
+fn delete_run_value(value_name: &str) -> bool {
+    let script = format!(
+        "Remove-ItemProperty -Path 'HKCU:\\{RUN_KEY_PATH}' -Name '{}' -ErrorAction Stop",
+        value_name.replace('\'', "''")
+    );
     matches!(
-        run("reg", &["delete", RUN_KEY, "/v", value_name, "/f"]),
+        run(
+            "powershell",
+            &["-NoProfile", "-NonInteractive", "-Command", &script],
+        ),
         Ok(result) if result.status.success()
     )
 }
