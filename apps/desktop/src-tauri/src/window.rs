@@ -60,12 +60,11 @@ pub fn clamp_to_work_area(
 }
 
 #[cfg(windows)]
-fn compute_clamped_overlay_position(fallback_scale: f64) -> Option<(i32, i32)> {
+fn compute_clamped_overlay_position(win_w: i32, win_h: i32) -> Option<(i32, i32)> {
     use windows::Win32::Foundation::POINT;
     use windows::Win32::Graphics::Gdi::{
         GetMonitorInfoW, MonitorFromPoint, MONITORINFO, MONITOR_DEFAULTTONEAREST,
     };
-    use windows::Win32::UI::HiDpi::{GetDpiForMonitor, MDT_EFFECTIVE_DPI};
     use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
 
     unsafe {
@@ -83,35 +82,15 @@ fn compute_clamped_overlay_position(fallback_scale: f64) -> Option<(i32, i32)> {
             return None;
         }
 
-        let mut dpi_x: u32 = 96;
-        let mut dpi_y: u32 = 96;
-        let scale = if GetDpiForMonitor(hmonitor, MDT_EFFECTIVE_DPI, &mut dpi_x, &mut dpi_y).is_ok()
-            && dpi_x > 0
-        {
-            dpi_x as f64 / 96.0
-        } else {
-            fallback_scale
-        };
-
-        let w_phys = (LOGICAL_WIDTH * scale).round() as i32;
-        let h_phys = (LOGICAL_HEIGHT * scale).round() as i32;
-
         let rc = info.rcWork;
         Some(clamp_to_work_area(
-            pt.x,
-            pt.y,
-            rc.left,
-            rc.top,
-            rc.right,
-            rc.bottom,
-            w_phys,
-            h_phys,
+            pt.x, pt.y, rc.left, rc.top, rc.right, rc.bottom, win_w, win_h,
         ))
     }
 }
 
 #[cfg(not(windows))]
-fn compute_clamped_overlay_position(_fallback_scale: f64) -> Option<(i32, i32)> {
+fn compute_clamped_overlay_position(_win_w: i32, _win_h: i32) -> Option<(i32, i32)> {
     None
 }
 
@@ -202,8 +181,20 @@ pub fn show_overlay_at_cursor(app: &AppHandle) {
 
     capture_previous_foreground_window(app, &window);
 
+    // The window keeps whatever size the user dragged it to, so clamp the popup
+    // position against the live window size instead of the configured default.
     let fallback_scale = window.scale_factor().unwrap_or(1.0);
-    if let Some((x, y)) = compute_clamped_overlay_position(fallback_scale) {
+    let (win_w, win_h) = window
+        .outer_size()
+        .map(|size| (size.width as i32, size.height as i32))
+        .unwrap_or_else(|_| {
+            (
+                (LOGICAL_WIDTH * fallback_scale).round() as i32,
+                (LOGICAL_HEIGHT * fallback_scale).round() as i32,
+            )
+        });
+
+    if let Some((x, y)) = compute_clamped_overlay_position(win_w.max(1), win_h.max(1)) {
         let _ = window.set_position(Position::Physical(PhysicalPosition::new(x, y)));
     }
 

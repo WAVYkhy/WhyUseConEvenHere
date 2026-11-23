@@ -77,3 +77,11 @@ export async function registerOverlayShortcut(shortcut: string): Promise<void> {
 export async function openExternalUrl(url: string): Promise<void> {
     await invoke("open_external_url", { url });
 }
+
+export async function isAutostartEnabled(): Promise<boolean> {
+    return invoke<boolean>("is_autostart_enabled");
+}
+
+export async function setAutostartEnabled(enabled: boolean): Promise<void> {
+    await invoke("set_autostart", { enabled });
+}

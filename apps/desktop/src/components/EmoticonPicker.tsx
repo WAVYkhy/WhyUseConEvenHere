@@ -25,6 +25,7 @@ import {
 } from "../adapters/tauriBridge";
 import { tauriStorage } from "../adapters/tauriStorage";
 import { checkAndAutoInstallUpdate } from "../adapters/updater";
+import { beginResizeDrag, startWindowSizeTracking } from "../adapters/windowSize";
 import { AddPackPanel, PackBar } from "./PackManager";
 import { SettingsModal } from "./SettingsModal";
 
@@ -262,6 +263,8 @@ export function EmoticonPicker() {
         media.addEventListener("change", applySystemTheme);
         return () => media.removeEventListener("change", applySystemTheme);
     }, [settings.theme]);
+
+    useEffect(() => startWindowSizeTracking(), []);
 
     useEffect(() => {
         Promise.all([tauriStorage.loadMetadata(), tauriStorage.loadSettings()]).then(
@@ -656,6 +659,17 @@ export function EmoticonPicker() {
             </div>
 
             {toast && <div className={`dc-ke-toast ${toast.variant}`}>{toast.text}</div>}
+
+            <div
+                className="dc-ke-resize-grip"
+                title="드래그해서 창 크기 조절"
+                onPointerDown={e => {
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void beginResizeDrag();
+                }}
+            />
 
             {settingsOpen && (
                 <SettingsModal

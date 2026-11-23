@@ -1,3 +1,4 @@
+mod autostart;
 mod commands;
 mod tray;
 mod window;
@@ -6,6 +7,7 @@ use std::sync::atomic::Ordering;
 use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
+use autostart::{is_autostart_enabled, set_autostart};
 use commands::clipboard::{cleanup_staging_dir, copy_media_to_clipboard};
 use commands::network::{fetch_arca_pack, fetch_dc_pack, fetch_media, open_external_url};
 use window::{hide_overlay_window, set_blur_suppressed, show_overlay_at_cursor, toggle_overlay, WindowGuardState};
@@ -47,15 +49,12 @@ pub fn run() {
             show_overlay_at_cursor(app);
         }))
         .plugin(tauri_plugin_store::Builder::default().build())
-        .plugin(tauri_plugin_autostart::init(
-            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            Some(vec!["--minimized"]),
-        ))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .setup(|app| {
             cleanup_staging_dir();
+            autostart::migrate_legacy_run_key();
             tray::setup_tray(app.handle())?;
 
             // Register default Alt+E shortcut on startup; frontend will re-sync saved shortcut if customized.
@@ -91,6 +90,8 @@ pub fn run() {
             set_blur_suppressed,
             register_overlay_shortcut,
             open_external_url,
+            is_autostart_enabled,
+            set_autostart,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -5,10 +5,14 @@ import {
     type ResizeOption,
     type ThemeMode,
 } from "@discordcon/core";
-import { disable as disableAutostart, enable as enableAutostart, isEnabled as isAutostartEnabled } from "@tauri-apps/plugin-autostart";
 import React, { useEffect, useState } from "react";
 
-import { registerOverlayShortcut, setBlurSuppressed } from "../adapters/tauriBridge";
+import {
+    isAutostartEnabled,
+    registerOverlayShortcut,
+    setAutostartEnabled,
+    setBlurSuppressed,
+} from "../adapters/tauriBridge";
 import { checkAndAutoInstallUpdate } from "../adapters/updater";
 
 interface SettingsModalProps {
@@ -75,11 +79,7 @@ export function SettingsModal({
             if (shortcut !== settings.shortcut) {
                 await registerOverlayShortcut(shortcut);
             }
-            if (autoStart) {
-                await enableAutostart().catch(() => {});
-            } else {
-                await disableAutostart().catch(() => {});
-            }
+            await setAutostartEnabled(autoStart).catch(() => {});
             await onSaveSettings({
                 shortcut,
                 resizeOption,

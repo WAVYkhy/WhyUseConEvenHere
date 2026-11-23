@@ -5,9 +5,10 @@
   "windows": ["main"],
   "permissions": [
     "core:default",
+    "core:window:allow-set-size",
+    "core:window:allow-start-resize-dragging",
     "global-shortcut:default",
     "store:default",
-    "autostart:default",
     "updater:default",
     "process:default"
   ]

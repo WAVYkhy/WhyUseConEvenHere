@@ -12,6 +12,7 @@ const PACKS_KEY = "packs";
 const RECENT_KEY = "recent";
 const FAVORITES_KEY = "favorites";
 const SETTINGS_KEY = "settings";
+const WINDOW_SIZE_KEY = "windowSize";
 const MAX_RECENT = 40;
 
 let storePromise: Promise<Store> | null = null;
@@ -72,3 +73,23 @@ export const tauriStorage: MetadataStorage = {
         await store.save();
     },
 };
+
+export interface WindowSizePreference {
+    width: number;
+    height: number;
+}
+
+export async function loadWindowSize(): Promise<WindowSizePreference | null> {
+    const store = await getStore();
+    const saved = await store.get<Partial<WindowSizePreference>>(WINDOW_SIZE_KEY);
+    if (!saved || typeof saved.width !== "number" || typeof saved.height !== "number") {
+        return null;
+    }
+    return { width: saved.width, height: saved.height };
+}
+
+export async function saveWindowSize(size: WindowSizePreference): Promise<void> {
+    const store = await getStore();
+    await store.set(WINDOW_SIZE_KEY, size);
+    await store.save();
+}

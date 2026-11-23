@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  Windows application manifest for the DiscordCon desktop app.
+
+  requestedExecutionLevel="requireAdministrator" makes every launch go through UAC so the
+  process runs elevated. Without elevation, Windows UIPI blocks SendInput/clipboard
+  injection into messenger clients that run elevated (e.g. Discord started as admin), so
+  the auto-paste feature silently fails against them.
+
+  Keep the Common-Controls dependency: Tauri relies on the v6 comctl32 for its own UI.
+-->
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+    type="win32"
+    name="com.discordcon.app"
+    version="1.0.0.0"
+    processorArchitecture="*"
+  />
+
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
+    <security>
+      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+        type="win32"
+        name="Microsoft.Windows.Common-Controls"
+        version="6.0.0.0"
+        processorArchitecture="*"
+        publicKeyToken="6595b64144ccf1df"
+        language="*"
+      />
+    </dependentAssembly>
+  </dependency>
+</assembly>
