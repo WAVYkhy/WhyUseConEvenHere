@@ -1,6 +1,6 @@
 [package]
 name = "discordcon-desktop"
-version = "0.1.4"
+version = "0.1.5"
 description = "Standalone Windows tray/overlay app for ArcaCon and DCCon"
 authors = ["DiscordCon"]
 license = "PolyForm-Noncommercial-1.0.0"
